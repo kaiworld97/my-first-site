@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>간단한 계산기</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #eef4ff, #dfe9ff);
+        font-family: Arial, sans-serif;
+      }
+
+      .calculator {
+        width: min(90vw, 360px);
+        background: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 20px 40px rgba(60, 80, 140, 0.18);
+        padding: 20px;
+      }
+
+      .display {
+        width: 100%;
+        min-height: 80px;
+        background: #f6f8ff;
+        border: 1px solid #dfe7ff;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        text-align: right;
+        font-size: 2rem;
+        color: #1f2a44;
+        overflow: hidden;
+        word-break: break-all;
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 18px 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.1s ease, opacity 0.2s ease;
+      }
+
+      button:hover { opacity: 0.95; }
+      button:active { transform: scale(0.98); }
+
+      .operator {
+        background: #eaf0ff;
+        color: #2347d1;
+      }
+
+      .number {
+        background: #f5f7fb;
+        color: #1d2437;
+      }
+
+      .equal {
+        background: linear-gradient(135deg, #3d6aff, #2a56f0);
+        color: #fff;
+        grid-column: span 2;
+      }
+
+      .clear {
+        background: #ffe7e7;
+        color: #d93b4d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calculator">
+      <div id="display" class="display">0</div>
+      <div class="buttons">
+        <button class="clear" data-action="clear">C</button>
+        <button class="operator" data-action="delete">⌫</button>
+        <button class="operator" data-value="/">÷</button>
+        <button class="operator" data-value="*">×</button>
+
+        <button class="number" data-value="7">7</button>
+        <button class="number" data-value="8">8</button>
+        <button class="number" data-value="9">9</button>
+        <button class="operator" data-value="-">−</button>
+
+        <button class="number" data-value="4">4</button>
+        <button class="number" data-value="5">5</button>
+        <button class="number" data-value="6">6</button>
+        <button class="operator" data-value="+">+</button>
+
+        <button class="number" data-value="1">1</button>
+        <button class="number" data-value="2">2</button>
+        <button class="number" data-value="3">3</button>
+        <button class="number" data-value=".">.</button>
+
+        <button class="number" data-value="0" style="grid-column: span 2;">0</button>
+        <button class="operator" data-action="equals">=</button>
+      </div>
+    </div>
+
+    <script>
+      const display = document.getElementById('display');
+      let expression = '';
+
+      function updateDisplay(value) {
+        display.textContent = value || '0';
+      }
+
+      function appendValue(value) {
+        if (value === '.' && /\.$/.test(expression)) return;
+        expression += value;
+        updateDisplay(expression);
+      }
+
+      function deleteLast() {
+        expression = expression.slice(0, -1);
+        updateDisplay(expression);
+      }
+
+      function clearAll() {
+        expression = '';
+        updateDisplay('0');
+      }
+
+      function calculate() {
+        if (!expression) return;
+
+        try {
+          const result = Function(`"use strict"; return (${expression})`)();
+          if (!Number.isFinite(result)) {
+            throw new Error('잘못된 계산입니다.');
+          }
+          expression = String(result);
+          updateDisplay(expression);
+        } catch (error) {
+          expression = '';
+          updateDisplay('오류');
+        }
+      }
+
+      document.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          const value = button.dataset.value;
+          const action = button.dataset.action;
+
+          if (value) {
+            appendValue(value);
+          } else if (action === 'clear') {
+            clearAll();
+          } else if (action === 'delete') {
+            deleteLast();
+          } else if (action === 'equals') {
+            calculate();
+          }
+        });
+      });
+
+      document.addEventListener('keydown', (event) => {
+        const key = event.key;
+
+        if (/^[0-9]$/.test(key) || ['+', '-', '*', '/', '.'].includes(key)) {
+          appendValue(key);
+        } else if (key === 'Enter' || key === '=') {
+          calculate();
+        } else if (key === 'Backspace') {
+          deleteLast();
+        } else if (key === 'Escape') {
+          clearAll();
+        }
+      });
+    </script>
+  </body>
+</html>
